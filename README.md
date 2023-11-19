@@ -27,6 +27,7 @@ npm install
 
 ```
 ### Antes de iniciar
+- Importe o banco de dados "ortomed.sql"
 - Crie um arquivo .env, na raiz do projeto
 - Adicione as informações que se pedem após o símbolo de igual (=)
 ```bash
