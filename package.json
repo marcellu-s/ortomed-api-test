@@ -1,7 +1,7 @@
 {
-    "name": "ortomed-api",
+    "name": "ortomed-api-test",
     "version": "1.0.0",
-    "description": "API do projeto OrtoMed",
+    "description": "API de teste local do projeto Ortomed",
     "main": "./src/index.js",
     "type": "module",
     "scripts": {
