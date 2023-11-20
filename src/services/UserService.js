@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import { database } from "../config/index.js"
 
-export class UserService {
+export default class UserService {
 
     async getToken(email, password) {
 
@@ -39,6 +39,7 @@ export class UserService {
         }
     }
 
+    // Registra usuário - Preparação dos dados
     async setUser(name, lastName, email, password, role) {
 
         // Verificar se o usuário já existe
@@ -64,6 +65,44 @@ export class UserService {
         )
 
         return isSaved;
+    }
+
+    // Registrar usuário - Definir a posição do usuário (paciente, ortopedista, administrador)
+    async insertUser(query, values, role=1) {
+
+        try {
+
+            const [ ResultSetHeader ] = await database.execute(query, values);
+
+            let isSuccess;
+
+            // Define o nível de acesso
+            if (role === 1) {
+
+                isSuccess = await this.insertPacient(ResultSetHeader.insertId);
+            } else if (role === 2) {
+
+                isSuccess = await this.insertOrthopedist(ResultSetHeader.insertId);
+            } else if (role === 3) {
+
+                isSuccess = await this.insertAdministrator(ResultSetHeader.insertId)
+            } else {
+
+                isSuccess = {
+                    error: 'Nível de acesso indefinido',
+                    code: 500
+                }
+            }
+
+            return isSuccess;
+
+        } catch(err) {
+
+            return {
+                error: 'Opa, um erro ocorreu ao salvar o usuário!',
+                code: 500
+            };
+        }
     }
 
     // Verifica se o usuário existe, e se a senha é correspondente
@@ -130,54 +169,6 @@ export class UserService {
             }
         }
     } 
-
-    // Registrar usuário
-    async insertUser(query, values, role=1) {
-
-        try {
-
-            const [ ResultSetHeader ] = await database.execute(query, values);
-
-            if (ResultSetHeader.affectedRows >= 1) {
-
-                let isSuccess;
-
-                // Define o nível de acesso
-                if (role === 1) {
-
-                    isSuccess = await this.insertPacient(ResultSetHeader.insertId);
-                } else if (role === 2) {
-
-                    isSuccess = await this.insertOrthopedist(ResultSetHeader.insertId);
-                } else if (role === 3) {
-
-                    isSuccess = await this.insertAdministrator(ResultSetHeader.insertId)
-                } else {
-
-                    isSuccess = {
-                        error: 'Nível de acesso indefinido',
-                        code: 500
-                    }
-                }
-
-                return isSuccess;
-            }
-
-            return {
-                error: 'Opa, um erro ocorreu ao salvar o usuário!',
-                code: 500
-            };
-
-        } catch(err) {
-
-            console.log(err)
-
-            return {
-                error: 'Opa, um erro ocorreu ao salvar o usuário!',
-                code: 500
-            };
-        }
-    }
 
     // Registrar paciente
     async insertPacient(user_id) {
