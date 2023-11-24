@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import { database } from "../config/index.js"
 
-export default class UserService {
+class UserService {
 
     async getToken(email, password) {
 
@@ -57,44 +57,20 @@ export default class UserService {
         const salt = await bcryptjs.genSalt(12);
         const passwordhashSync = await bcryptjs.hash(password, salt);
 
-        // Salvar usuário no banco
-        const isSaved = await this.insertUser(
-            'INSERT INTO usuario (nome, sobrenome, email, senha) VALUES (?, ?, ?, ?);', 
-            [name, lastName, email, passwordhashSync],
-            role
-        )
-
-        return isSaved;
-    }
-
-    // Registrar usuário - Definir a posição do usuário (paciente, ortopedista, administrador)
-    async insertUser(query, values, role=1) {
-
         try {
 
-            const [ ResultSetHeader ] = await database.execute(query, values);
+            const roles = ['paciente', 'ortopedista', 'administrador'];
+            
+            await database.execute(`
+                INSERT INTO usuario (nome, sobrenome, email, senha, status, funcao) VALUES (
+                    ?, ?, ?, ?, ?, ?
+                )
+            `, [name, lastName, email, passwordhashSync, 'ativo', roles[role]]);
 
-            let isSuccess;
-
-            // Define o nível de acesso
-            if (role === 1) {
-
-                isSuccess = await this.insertPacient(ResultSetHeader.insertId);
-            } else if (role === 2) {
-
-                isSuccess = await this.insertOrthopedist(ResultSetHeader.insertId);
-            } else if (role === 3) {
-
-                isSuccess = await this.insertAdministrator(ResultSetHeader.insertId)
-            } else {
-
-                isSuccess = {
-                    error: 'Nível de acesso indefinido',
-                    code: 500
-                }
+            return {
+                code: 201,
+                success: 'Cadastro realizado com sucesso!'
             }
-
-            return isSuccess;
 
         } catch(err) {
 
@@ -104,13 +80,12 @@ export default class UserService {
             };
         }
     }
-
     // Verifica se o usuário existe, e se a senha é correspondente
     async userExists(email, password) {
 
         try {
             // Retorna a senha do usuário, caso ele exista
-            const [ rows ] = await database.execute('SELECT id_usuario, nome, sobrenome, senha from usuario WHERE email = ?', [email]);
+            const [ rows ] = await database.execute('SELECT id_usuario, nome, sobrenome, senha from usuario WHERE email = ? AND status = "ativo"', [email]);
 
             if (rows.length == 1) {
                 // Compara a senha enviada na requisição, com a armazenada no banco de dados
@@ -169,76 +144,6 @@ export default class UserService {
             }
         }
     } 
-
-    // Registrar paciente
-    async insertPacient(user_id) {
-
-        try {
-
-            await database.execute(`
-                INSERT INTO paciente (id_usuario) VALUES (?)
-            `, [user_id]);
-
-            return {
-                success: 'Paciente registrado com sucesso!',
-                code: 201
-            };
-        } catch(err) {
-
-            console.log(err)
-
-            return {
-                error: 'Erro ao registrar o paciente!',
-                code: 500
-            }
-        }
-    }
-
-    // Registrar ortopedista
-    async insertOrthopedist(user_id) {
-
-        try {
-            // '09:00,12:00,15:00,18:00'
-            await database.execute(`
-                INSERT INTO ortopedista (id_usuario, status) VALUES (
-                    ?, ?
-                )
-            `, [user_id, 'ativo']);
-
-            return {
-                success: 'Ortopedista registrado com sucesso!',
-                code: 201
-            };
-        } catch(err) {
-
-            return {
-                error: 'Erro ao registrar o ortopedista!',
-                code: 500
-            }
-        }
-    }
-
-    // Registrar administrador
-    async insertAdministrator(user_id) {
-
-        try {
-
-            await database.execute(`
-                INSERT INTO administrador (id_usuario, status) VALUES (
-                    ?, ?
-                )
-            `, [user_id, 'ativo']);
-
-            return {
-                success: 'Administrador registrado com sucesso!',
-                code: 201
-            };
-        } catch(err) {
-
-            return {
-                error: 'Erro ao registrar o administrador!',
-                code: 500
-            }
-        }
-    }
 }
+
+export const userService = new UserService()

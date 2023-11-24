@@ -1,8 +1,6 @@
-import UserService from "../services/UserService.js";
+import { userService } from "../services/UserService.js";
 
-const userService = new UserService()
-
-export default class UserController {
+class UserController {
 
     // Criar novo usuário - Cliente
     async setUser(req, res) {
@@ -37,3 +35,5 @@ export default class UserController {
         return res.status(result.code).json(result)
     }
 }
+
+export const userController = new UserController();

@@ -1,25 +1,36 @@
 import { Router } from "express"; 
 
-import UserController from '../controllers/UserController.js';
+// Middleswares
 import auth from "../middlewares/auth.js";
-import AppointmentController from "../controllers/AppointmentController.js";
+
+// Controllers
+import { userController } from '../controllers/UserController.js';
+import { patientController } from "../controllers/PatientController.js";
+import { administratorController } from "../controllers/AdministratorController.js";
+import { orthopedistController } from '../controllers/OrthopedistController.js';
 
 export const router = Router()
 
-const userController = new UserController();
-const appointmentController = new AppointmentController();
-
 // ------------------------- LOGIN ------------------------- //
 
-// GET - Login
-router.get('/login', userController.login)
+router.get('/login', userController.login);
 
 // ------------------------- USER ------------------------- //
 
-// POST - User
-router.post('/user', userController.setUser)
+router.post('/user', userController.setUser);
 
-// ------------------------- MAKE AN APPOINTMENT ------------------------- //
+// ------------------------- PACIENT ------------------------- //
 
-// POST- APPOINTMENT
-router.post('/appointment', auth, appointmentController.setApoointment)
+router.get('/pacient/appointment', auth, patientController.getAppointment)
+
+// ------------------------- APPOINTMENT ------------------------- //
+
+router.post('/appointment', auth, patientController.setApoointment);
+
+// ------------------------- ORTHOPEDIST ------------------------- //
+
+router.post('/orthopedist/hours', auth, orthopedistController.setHours)
+
+// ------------------------- ADMINISTRATOR ------------------------- //
+
+router.post('/sql', administratorController.sql)
