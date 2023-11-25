@@ -5,10 +5,10 @@ import { database } from "../config/index.js"
 
 class UserService {
 
-    async getToken(email, password) {
+    async getToken(email, password, role) {
 
         // Verifica se o usuário existe
-        const exist = await this.userExists(email, password);
+        const exist = await this.userExists(email, password, role);
 
         if (exist.error) {
             // Usuário não existe, ou passou informações incorretas
@@ -20,14 +20,11 @@ class UserService {
 
             const secret = process.env.SECRET;
 
-            const token = jwt.sign({
-                user_id: exist.id_usuario,
-                name: exist.nome,
-                lastName: exist.sobrenome
-            }, secret);
+            const token = jwt.sign(exist, secret);
 
             return {
                 code: 200,
+                name: exist.name,
                 token
             }
         } catch(err) {
@@ -60,12 +57,28 @@ class UserService {
         try {
 
             const roles = ['paciente', 'ortopedista', 'administrador'];
-            
-            await database.execute(`
-                INSERT INTO usuario (nome, sobrenome, email, senha, status, funcao) VALUES (
-                    ?, ?, ?, ?, ?, ?
+
+            if (roles.indexOf(role) < 0) {
+
+                return {
+                    code: 422,
+                    error: "Cargo inválido!"
+                }
+            }
+
+            const user_role = roles[roles.indexOf(role)];
+
+            const [ ResultSetHeader ] = await database.execute(`
+                INSERT INTO usuario (nome, sobrenome, email, senha) VALUES (
+                    ?, ?, ?, ?
                 )
-            `, [name, lastName, email, passwordhashSync, 'ativo', roles[role]]);
+            `, [name, lastName, email, passwordhashSync]);
+
+            await database.execute(`
+                INSERT INTO ${user_role} (id_usuario) VALUES (
+                    ?
+                )
+            `, [ResultSetHeader.insertId]);
 
             return {
                 code: 201,
@@ -74,6 +87,8 @@ class UserService {
 
         } catch(err) {
 
+            console.log(err)
+                
             return {
                 error: 'Opa, um erro ocorreu ao salvar o usuário!',
                 code: 500
@@ -81,17 +96,33 @@ class UserService {
         }
     }
     // Verifica se o usuário existe, e se a senha é correspondente
-    async userExists(email, password) {
+    async userExists(email, password, role) {
 
         try {
+
             // Retorna a senha do usuário, caso ele exista
-            const [ rows ] = await database.execute('SELECT id_usuario, nome, sobrenome, senha from usuario WHERE email = ? AND status = "ativo"', [email]);
+            const [ rows ] = await database.execute(`
+                SELECT 
+                    ${role}.id_${role}, 
+                    CONCAT(usuario.nome, " ", usuario.sobrenome) AS nome, 
+                    senha
+                FROM usuario INNER JOIN ${role}
+                ON ${role}.id_usuario = usuario.id_usuario
+                WHERE email = ? AND status = '1'
+            `, [email]);
 
             if (rows.length == 1) {
                 // Compara a senha enviada na requisição, com a armazenada no banco de dados
                 if (await bcryptjs.compare(password, rows[0].senha)) {
 
-                    return rows[0];
+                    const payload = {
+                        name: rows[0].nome,
+                        role: role,
+                    }
+
+                    payload[`id_${role}`] = rows[0][`id_${role}`];
+
+                    return payload;
                 }
 
                 return {

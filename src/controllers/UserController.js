@@ -21,16 +21,23 @@ class UserController {
 
     async login(req, res) {
 
-        const { email, password } = req.query;
+        const { email, password, role } = req.query;
 
-        if (!email || !password) {
+        if (!email || !password || !role) {
 
             return res.status(422).json({
                 error: 'Dados estão faltando!'
             });
         }
 
-        const result = await userService.getToken(email, password);
+        if (['paciente', 'ortopedista', 'administrador'].indexOf(role) < 0) {
+
+            return res.status(422).json({
+                error: 'Cargo inválido!'
+            });
+        }
+
+        const result = await userService.getToken(email, password, role);
 
         return res.status(result.code).json(result)
     }

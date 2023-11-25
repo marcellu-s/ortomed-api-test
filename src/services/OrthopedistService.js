@@ -9,21 +9,19 @@ class OrthopedistService {
 
         try {
 
-            const { user_id } = jwt.decode(token, process.env.SECRET);
+            const { id_ortopedista } = jwt.decode(token, process.env.SECRET);
 
-            const [ rows ] = await database.execute(`SELECT id_usuario AS id_ortopedista FROM usuario WHERE id_usuario = ?`, [user_id]);
-
-            if (!rows.length === 1) {
+            if (!id_ortopedista) {
 
                 return {
-                    code: 404,
-                    error: "Usuário não indentificado!"
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
                 }
             }
 
             await database.execute(`INSERT INTO horario (data, hora, id_ortopedista) VALUES (
                 ?, ?, ?
-            )`, [date, hour, rows[0].id_ortopedista]);
+            )`, [date, hour, id_ortopedista]);
 
             return {
                 code: 201,

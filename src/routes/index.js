@@ -21,7 +21,7 @@ router.post('/user', userController.setUser);
 
 // ------------------------- PACIENT ------------------------- //
 
-router.get('/pacient/appointment', auth, patientController.getAppointment)
+router.get('/pacient/appointment', auth, patientController.getMyAppointments)
 
 // ------------------------- APPOINTMENT ------------------------- //
 
