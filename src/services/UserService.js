@@ -86,8 +86,6 @@ class UserService {
             }
 
         } catch(err) {
-
-            console.log(err)
                 
             return {
                 error: 'Opa, um erro ocorreu ao salvar o usuário!',

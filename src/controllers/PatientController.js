@@ -4,7 +4,7 @@ class PatientController {
 
     async getMyAppointmentById(req, res) {
 
-        const { id } = req.paramns;
+        const { id } = req.params;
 
         if (!id) {
 
@@ -42,14 +42,7 @@ class PatientController {
 
         const result = await patientService.getMyAppointments(token);
         
-        if (result.records) {
-
-            return res.status(result.code).json(result.records);
-        } else {
-
-            return res.status(result.code).json(result);
-        }
-
+        return res.status(result.code).json(result);
     }
 
     async setApoointment(req, res) {

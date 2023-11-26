@@ -19,9 +19,9 @@ class OrthopedistService {
                 }
             }
 
-            await database.execute(`INSERT INTO horario (data, hora, id_ortopedista) VALUES (
-                ?, ?, ?
-            )`, [date, hour, id_ortopedista]);
+            await database.execute(`INSERT INTO horario (data_hora, id_ortopedista) VALUES (
+                ?, ?
+            )`, [`${date} ${hour}`, id_ortopedista]);
 
             return {
                 code: 201,

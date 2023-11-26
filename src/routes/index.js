@@ -22,6 +22,7 @@ router.post('/user', userController.setUser);
 // ------------------------- PACIENT ------------------------- //
 
 router.get('/pacient/appointment', auth, patientController.getMyAppointments)
+router.get('/pacient/appointment/:id', auth, patientController.getMyAppointmentById)
 
 // ------------------------- APPOINTMENT ------------------------- //
 

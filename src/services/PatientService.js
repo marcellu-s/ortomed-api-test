@@ -20,7 +20,14 @@ class PatientService {
             }
 
             const [ rows ] = await database.execute(`
-                SELECT * FROM consulta WHERE id_paciente = ?
+                SELECT consulta.*, CONCAT(p.nome, " ", p.sobrenome) AS nome_paciente, CONCAT(o.nome, " ", o.sobrenome) AS nome_ortopedista
+                FROM consulta
+                JOIN paciente ON paciente.id_paciente = consulta.id_paciente
+                JOIN ortopedista ON ortopedista.id_ortopedista = consulta.id_ortopedista
+                JOIN usuario AS p ON p.id_usuario = paciente.id_usuario
+                JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
+                WHERE paciente.id_paciente = ?
+                ORDER BY consulta.data_hora DESC       
             `, [id_paciente]);
 
             if (rows.length < 1) {
@@ -31,32 +38,66 @@ class PatientService {
                 }
             }
 
-            const payload = [];
-
-            for (let i=0; i < rows.length; i++) {
-
-                payload.push({
-                    id_consulta: rows[i].id_consulta,
-                    servico: rows[i].servico,
-                    data: new Date(rows[i].data).toLocaleString(),
-                    hora: rows[i].hora,
-                    status: rows[i].status,
-                    id_paciente: rows[i].id_paciente,
-                    id_ortopedista: rows[i].id_ortopedista
-                });
-            }
-
             return {
                 code: 200,
-                records: payload
+                success: rows
             }
+        } catch(err) {
+
+            return {
+                code: 500,
+                error: 'Opa, um erro ocorreu!'
+            }
+        }
+    }
+
+    // Retornar consulta pelo id
+    async getMyAppointmentById(id, token) {
+
+        try {
+
+            const { id_paciente } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_paciente) {
+    
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            const [ row ] = await database.execute(`
+                SELECT consulta.*, CONCAT(p.nome, " ", p.sobrenome) AS nome_paciente, CONCAT(o.nome, " ", o.sobrenome) AS nome_ortopedista
+                FROM consulta
+                JOIN paciente ON paciente.id_paciente = consulta.id_paciente
+                JOIN ortopedista ON ortopedista.id_ortopedista = consulta.id_ortopedista
+                JOIN usuario AS p ON p.id_usuario = paciente.id_usuario
+                JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
+                WHERE consulta.id_consulta = ?
+            `, [id])
+
+            if (row.length === 1) {
+
+                return {
+                    code: 200,
+                    success: row
+                }
+            } else {
+
+                return {
+                    code: 200,
+                    success: `Não foi encontrado nenhum registro de id ${id}`
+                }
+            }
+
+
         } catch(err) {
 
             console.log(err);
 
             return {
                 code: 500,
-                error: 'Opa, um erro ocorreu!'
+                error: "Opa, um erro ocorreu!"
             }
         }
     }
@@ -78,7 +119,7 @@ class PatientService {
 
             // Verifica se o horário está disponível
             const [ rows ] = await database.execute(`
-                SELECT id_horario, data, hora FROM horario WHERE id_horario = ? AND id_ortopedista = ? AND status = '0'
+                SELECT id_horario, data_hora FROM horario WHERE id_horario = ? AND id_ortopedista = ? AND status = '0'
             `, [hour_id, orthopedist_id]);
 
             if (!(rows.length === 1)) {
@@ -91,10 +132,10 @@ class PatientService {
 
             // Registra a consulta - em espera
             await database.execute(`
-                INSERT INTO consulta (servico, data, hora, id_paciente, id_ortopedista) VALUES (
-                    ?, ?, ?, ?, ?
+                INSERT INTO consulta (servico, data_hora, id_paciente, id_ortopedista) VALUES (
+                    ?, ?, ?, ?
                 )
-            `, [service, rows[0].data, rows[0].hora, id_paciente, orthopedist_id]);
+            `, [service, rows[0].data_hora, id_paciente, orthopedist_id]);
 
             // Altera o horário para indisponíveç
             await database.execute(`
