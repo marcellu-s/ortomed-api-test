@@ -62,6 +62,25 @@ class PatientController {
 
         return res.status(result.code).json(result);
     }
+
+    async setCancelAppointment(req, res) {
+
+        // appointmentID
+        const { appointmentID, hourID } = req.query;
+
+        if (!appointmentID || !hourID) {
+
+            return res.status(422).json({
+                error: "Parâmetros faltando!"
+            })
+        }
+
+        const [ , token ] = req.headers.authorization.split(' ');
+
+        const result = await patientService.setCancelAppointment(appointmentID, hourID, token);
+
+        return res.status(result.code).json(result);
+    }
 }
 
 export const patientController = new PatientController();

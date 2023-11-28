@@ -154,6 +154,73 @@ class PatientService {
             }
         }
     }
+
+    async setCancelAppointment(appointmentID, hourID, token) {
+
+        try {
+
+            const { id_paciente } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_paciente) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            const [ row ] = await database.execute(`
+                SELECT * FROM consulta
+                WHERE id_paciente = ? AND id_consulta = ? AND status = "em espera"
+            `, [id_paciente, appointmentID]);
+
+            if (row.length < 1) {
+
+                return {
+                    code: 404,
+                    success: 'Consulta não encontrada ou já cancelada!'
+                }
+            }
+
+            // Seta a data da consulta
+            const appointmentDatetime = new Date(row[0].data_hora);
+            // Seta a data atual
+            const currentDate = new Date();
+            // Calcule a diferença em milissegundos
+            const differenceInMilliseconds = Math.abs(appointmentDatetime - currentDate);
+            // Converta a diferença em horas
+            const differenceInHours = (differenceInMilliseconds / (1000 * 60 * 60)).toFixed(1);
+
+            if (differenceInHours > 24) {
+                // Pode cancelar a consulta
+                await database.execute(`
+                    BEGIN TRANSACTION;
+                        UPDATE consulta SET status = "cancelada" WHERE id_consulta = ?
+                        UPDATE horario SET status = '0' WHERE id_horario = ?
+                    COMMIT;
+                `, [appointmentID, hourID]);
+
+                return {
+                    code: 200,
+                    success: "Consulta cancelada com sucesso!"
+                }
+            } else {
+                // Não pode cancelar a consulta
+                return {
+                    code: 400,
+                    success: `A consulta deve ter 24 horas de diferença entre a data atual e a da consulta! A atual diferença é de ${Number(differenceInHours).toFixed(0)} hora(s)`
+                }
+            }
+        } catch(err) {
+
+            console.log(err);
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao tentar realizar esta ação!"
+            }
+        }
+    }
 }
 
 export const patientService = new PatientService();
