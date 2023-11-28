@@ -1,4 +1,4 @@
-import { database } from "../config/index.js"
+import { database } from "../config/index.js";
 
 class AdministratorService {
 

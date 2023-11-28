@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-import { database } from "../config/index.js"
+import { database } from "../config/index.js";
 
 class PatientService {
 
@@ -74,7 +74,7 @@ class PatientService {
                 JOIN usuario AS p ON p.id_usuario = paciente.id_usuario
                 JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
                 WHERE consulta.id_consulta = ?
-            `, [id])
+            `, [id]);
 
             if (row.length === 1) {
 

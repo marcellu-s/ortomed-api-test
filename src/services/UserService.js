@@ -1,7 +1,7 @@
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { database } from "../config/index.js"
+import { database } from "../config/index.js";
 
 class UserService {
 
