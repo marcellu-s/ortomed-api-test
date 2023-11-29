@@ -102,6 +102,19 @@ class PatientService {
         }
     }
 
+    // Pegar a diferença de horário entre a data atual e a da consulta
+    getDifferenceInHours(datetime) {
+
+        // Seta a data da consulta
+        const appointmentDatetime = new Date(datetime);
+        // Seta a data atual
+        const currentDate = new Date();
+        // Calcule a diferença em milissegundos
+        const differenceInMilliseconds = Math.abs(appointmentDatetime - currentDate);
+        // Converta a diferença em horas e retorna
+        return (differenceInMilliseconds / (1000 * 60 * 60)).toFixed(1);
+    }   
+
     // Marcar consulta - Em espera
     async setApoointment(service, orthopedist_id, hour_id, token) {
 
@@ -119,7 +132,7 @@ class PatientService {
 
             // Verifica se o horário está disponível
             const [ rows ] = await database.execute(`
-                SELECT id_horario, data_hora FROM horario WHERE id_horario = ? AND id_ortopedista = ? AND status = '0'
+                SELECT id_horario, data_hora FROM horario WHERE id_horario = ? AND id_ortopedista = ?
             `, [hour_id, orthopedist_id]);
 
             if (!(rows.length === 1)) {
@@ -127,6 +140,17 @@ class PatientService {
                 return {
                     code: 404,
                     error: "Horário indisponível!"
+                }
+            }
+
+            // Verifica se a consulta será marcada 24 horas antes
+            const differenceInHours = this.getDifferenceInHours(rows[0].data_hora);
+
+            if (differenceInHours < 24) {
+
+                return {
+                    code: 400,
+                    error: "A consulta deve ser marcada 24 horas antes!"
                 }
             }
 
@@ -147,6 +171,8 @@ class PatientService {
                 success: 'Consulta marcada com sucesso!'
             }
         } catch(err) {
+
+            console.log(err);
 
             return {
                 code: 500,
@@ -178,27 +204,21 @@ class PatientService {
 
                 return {
                     code: 404,
-                    success: 'Consulta não encontrada ou já cancelada!'
+                    error: 'Consulta não encontrada ou já cancelada!'
                 }
             }
 
-            // Seta a data da consulta
-            const appointmentDatetime = new Date(row[0].data_hora);
-            // Seta a data atual
-            const currentDate = new Date();
-            // Calcule a diferença em milissegundos
-            const differenceInMilliseconds = Math.abs(appointmentDatetime - currentDate);
-            // Converta a diferença em horas
-            const differenceInHours = (differenceInMilliseconds / (1000 * 60 * 60)).toFixed(1);
+            const differenceInHours = this.getDifferenceInHours(row[0].data_hora)
 
             if (differenceInHours > 24) {
                 // Pode cancelar a consulta
                 await database.execute(`
-                    BEGIN TRANSACTION;
-                        UPDATE consulta SET status = "cancelada" WHERE id_consulta = ?
-                        UPDATE horario SET status = '0' WHERE id_horario = ?
-                    COMMIT;
-                `, [appointmentID, hourID]);
+                    UPDATE consulta SET status = "cancelada" WHERE id_consulta = ?;
+                `, [appointmentID]);
+                
+                await database.execute(`
+                    UPDATE horario SET status = "0" WHERE id_horario = ?;
+                `, [hourID]);
 
                 return {
                     code: 200,
@@ -208,7 +228,7 @@ class PatientService {
                 // Não pode cancelar a consulta
                 return {
                     code: 400,
-                    success: `A consulta deve ter 24 horas de diferença entre a data atual e a da consulta! A atual diferença é de ${Number(differenceInHours).toFixed(0)} hora(s)`
+                    error: `A consulta deve ter 24 horas de diferença entre a data atual e a da consulta!`
                 }
             }
         } catch(err) {
