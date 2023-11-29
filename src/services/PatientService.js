@@ -132,7 +132,7 @@ class PatientService {
 
             // Verifica se o horário está disponível
             const [ rows ] = await database.execute(`
-                SELECT id_horario, data_hora FROM horario WHERE id_horario = ? AND id_ortopedista = ?
+                SELECT id_horario, data_hora FROM horario WHERE id_horario = ? AND id_ortopedista = ? AND status = '0'
             `, [hour_id, orthopedist_id]);
 
             if (!(rows.length === 1)) {
