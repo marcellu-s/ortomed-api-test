@@ -4,7 +4,7 @@ import { database } from "../config/index.js";
 
 class OrthopedistService {
 
-    async getMyAppointments(token, filter) {
+    async getMyAppointments(token, filter, today) {
 
         try {
 
@@ -18,7 +18,11 @@ class OrthopedistService {
                 }
             }
 
-            const queryComplement = `AND consulta.status = ${filter.toLowerCase()}`;
+            let queryComplement = '';
+
+            if (filter != 'all') queryComplement = "AND consulta.status = ?";
+
+            if (today === true) queryComplement = `${queryComplement} AND DATE(consulta.data_hora) = CURDATE()`;
 
             const [ rows ] = await database.execute(`
                 SELECT consulta.*, CONCAT(p.nome, " ", p.sobrenome) AS nome_paciente, CONCAT(o.nome, " ", o.sobrenome) AS nome_ortopedista
@@ -27,9 +31,9 @@ class OrthopedistService {
                 JOIN ortopedista ON ortopedista.id_ortopedista = consulta.id_ortopedista
                 JOIN usuario AS p ON p.id_usuario = paciente.id_usuario
                 JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
-                WHERE ortopedista.id_ortopedista = ? ${filter != 'all' && queryComplement}
+                WHERE ortopedista.id_ortopedista = ? ${queryComplement}
                 ORDER BY consulta.data_hora DESC       
-            `, [id_ortopedista]);
+            `, [id_ortopedista, filter.toLowerCase()]);
 
             if (rows.length < 1) {
 
@@ -44,6 +48,8 @@ class OrthopedistService {
                 success: rows
             }
         } catch(err) {
+
+            console.log(err);
 
             return {
                 code: 500,

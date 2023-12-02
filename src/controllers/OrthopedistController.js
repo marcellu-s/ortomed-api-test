@@ -5,28 +5,25 @@ class OrthopedistController {
     // Consultas marcadas do ortopedista
     async getMyAppointments(req, res) {
 
-        // Recebe o parâmetro de filtro
-        let { filter } = req.query;
+        let { filter, today } = req.query;
+
+        if (!filter) filter = 'all';
+
+        today = today == 'true' ? true : false;
 
         // Verificação caso exista um parâmetro de filtro
-        if (filter) {
-            // Verifica se é válido
-            const filtersOptions = ['all', 'em espera', 'cancelada', 'concluida'];
+        const filtersOptions = ['all', 'em espera', 'cancelada', 'concluida'];
 
-            if (filtersOptions.indexOf(filter) < 0) {
+        if (filtersOptions.indexOf(filter) < 0) {
 
-                return res.status(400).json({
-                    error: "Parâmetro de filtro inválido!"
-                });
-            }
-        } else {
-            // Defini um valor padrão de filtro
-            filter = 'all'
+            return res.status(400).json({
+                error: "Parâmetro de filtro inválido!"
+            });
         }
 
         const [ , token] = req.headers.authorization.split(' ');
 
-        const result = await orthopedistController.getMyAppointments(token, filter);
+        const result = await orthopedistService.getMyAppointments(token, filter, today);
         
         return res.status(result.code).json(result);
     }
