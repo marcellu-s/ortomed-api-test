@@ -20,7 +20,7 @@ class OrthopedistService {
 
             let queryComplement = '';
 
-            if (filter != 'all') queryComplement = "AND consulta.status = ?";
+            if (filter != 'all') queryComplement = `AND consulta.status = '${filter.toLowerCase()}'`;
 
             if (today === true) queryComplement = `${queryComplement} AND DATE(consulta.data_hora) = CURDATE()`;
 
@@ -33,7 +33,7 @@ class OrthopedistService {
                 JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
                 WHERE ortopedista.id_ortopedista = ? ${queryComplement}
                 ORDER BY consulta.data_hora DESC       
-            `, [id_ortopedista, filter.toLowerCase()]);
+            `, [id_ortopedista]);
 
             if (rows.length < 1) {
 

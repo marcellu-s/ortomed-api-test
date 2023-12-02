@@ -22,25 +22,25 @@ class PatientController {
 
     async getMyAppointments(req, res) {
 
-        const { filter } = req.query;
+        let { filter, today } = req.query;
 
-        if (!filter) {
+        if (!filter) filter = 'all';
 
-            return res.status(422).json({
-                error: 'Parâmetro está faltando'
+        today = today == 'true' ? true : false;
+
+        // Verificação caso exista um parâmetro de filtro
+        const filtersOptions = ['all', 'em espera', 'cancelada', 'concluida'];
+
+        if (filtersOptions.indexOf(filter) < 0) {
+
+            return res.status(400).json({
+                error: "Parâmetro de filtro inválido!"
             });
         }
 
-        if (filter != 'all') {
-
-            return res.status(422).json({
-                error: "O parâmetro 'filter', por enquanto, aceita somente 'all'"
-            });
-        } 
-
         const [ , token] = req.headers.authorization.split(' ');
 
-        const result = await patientService.getMyAppointments(token);
+        const result = await patientService.getMyAppointments(token, filter, today);
         
         return res.status(result.code).json(result);
     }

@@ -5,7 +5,7 @@ import { database } from "../config/index.js";
 class PatientService {
 
     // Retornar todas as consultas do paciente
-    async getMyAppointments(token) {
+    async getMyAppointments(token, filter, today) {
 
         try {
 
@@ -19,6 +19,14 @@ class PatientService {
                 }
             }
 
+            let queryComplement = '';
+
+            if (filter != 'all') queryComplement = `AND consulta.status = '${filter.toLowerCase()}'`;
+
+            if (today === true) queryComplement = `${queryComplement} AND DATE(consulta.data_hora) = CURDATE()`;
+
+            console.log(queryComplement);
+
             const [ rows ] = await database.execute(`
                 SELECT consulta.*, CONCAT(p.nome, " ", p.sobrenome) AS nome_paciente, CONCAT(o.nome, " ", o.sobrenome) AS nome_ortopedista
                 FROM consulta
@@ -26,9 +34,10 @@ class PatientService {
                 JOIN ortopedista ON ortopedista.id_ortopedista = consulta.id_ortopedista
                 JOIN usuario AS p ON p.id_usuario = paciente.id_usuario
                 JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
-                WHERE paciente.id_paciente = ?
-                ORDER BY consulta.data_hora DESC       
+                WHERE paciente.id_paciente = ? ${queryComplement}
+                ORDER BY consulta.data_hora DESC        
             `, [id_paciente]);
+
 
             if (rows.length < 1) {
 
