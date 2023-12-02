@@ -44,6 +44,20 @@ class OrthopedistController {
 
         return res.status(result.code).json(result);
     }
+
+    // Definir consulta como concluída
+    async setCompleteAppointment(req, res) {
+
+        const { appointmentID, hourID } = req.query;
+
+        if (!appointmentID || !hourID) return res.status(422).json({ error: 'ID da consulta e do horário são obrigatórios!' });
+
+        const [ , token] = req.headers.authorization.split(' ');
+
+        const result = await orthopedistService.setCompleteAppointment(appointmentID, hourID, token);
+
+        return res.status(result.code).json(result);
+    }
 }
 
 export const orthopedistController = new OrthopedistController();

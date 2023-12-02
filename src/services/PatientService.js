@@ -135,12 +135,18 @@ class PatientService {
                 SELECT id_horario, data_hora FROM horario WHERE id_horario = ? AND id_ortopedista = ? AND status = '0'
             `, [hour_id, orthopedist_id]);
 
-            if (!(rows.length === 1)) {
+            // Verifica se o horário está disponível ou se já passou
+            if (!(rows.length === 1) || new Date() > new Date(rows[0].data_hora)) {
 
                 return {
                     code: 404,
                     error: "Horário indisponível!"
                 }
+            }
+
+            return {
+                code: 200,
+                success: 'OK'
             }
 
             // Verifica se a consulta será marcada 24 horas antes

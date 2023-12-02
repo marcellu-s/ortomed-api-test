@@ -31,6 +31,7 @@ router.post('/cancel/appointment', auth, patientController.setCancelAppointment)
 router.get('/orthopedist', orthopedistController.getAllOrthopedist)
 router.get('/orthopedist/hours/:id', orthopedistController.getHours);
 router.post('/orthopedist/hours', auth, orthopedistController.setHours);
+router.patch('/orthopedist/conclude/appointment', auth, orthopedistController.setCompleteAppointment)
 
 // ------------------------- ADMINISTRATOR ------------------------- //
 

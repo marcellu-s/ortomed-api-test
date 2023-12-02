@@ -49,7 +49,7 @@ class OrthopedistService {
                 SELECT horario.id_horario, horario.id_ortopedista, CONCAT(usuario.nome, " ", usuario.sobrenome) AS nome_ortopedista, horario.status, horario.data_hora FROM horario
                 JOIN ortopedista ON ortopedista.id_ortopedista = horario.id_ortopedista
                 JOIN usuario ON usuario.id_usuario = ortopedista.id_usuario
-                WHERE horario.id_ortopedista = ?
+                WHERE horario.id_ortopedista = ? AND horario.data_hora > NOW()
                 ORDER BY horario.data_hora
             `, [orthopedistID]);
 
@@ -71,6 +71,10 @@ class OrthopedistService {
 
         try {
 
+            const requestedDatetime = new Date(`${date} ${hour}`);
+
+            if (requestedDatetime < new Date()) return { code: 400, error: 'O horário deve ser maior que a data de hoje!' }
+
             const { id_ortopedista } = jwt.decode(token, process.env.SECRET);
 
             if (!id_ortopedista) {
@@ -78,6 +82,20 @@ class OrthopedistService {
                 return {
                     code: 401,
                     error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            const [ isSameHour ] = await database.execute(`
+                SELECT id_horario FROM horario 
+                WHERE id_ortopedista = ? AND data_hora = ?
+                LIMIT 1
+            `, [id_ortopedista, requestedDatetime]);
+
+            if (!(isSameHour.length === 0)) {
+
+                return {
+                    code: 403,
+                    error: "Data e hora já existentes!"
                 }
             }
 
@@ -94,6 +112,64 @@ class OrthopedistService {
             return {
                 code: 500,
                 error: "Opa, um erro ocorreu ao salvar os horários!"
+            }
+        }
+    }
+
+    // Definir consulta como concluída
+    async setCompleteAppointment(appointmentID, hourID, token) {
+
+        try {
+            const { id_ortopedista } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_ortopedista) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            // Verificar se a data e hora da consulta já passou
+            const [ appointment ] = await database.execute(`
+                SELECT data_hora FROM consulta WHERE id_consulta = ? AND id_ortopedista = ? AND status = 'em espera'
+            `, [appointmentID, id_ortopedista]);
+
+            if (appointment.length < 1) return { code: 404, error: "Consulta não encontrada!" }
+
+            const currentDatetime = new Date();
+
+            const appointmentDatetime = new Date(appointment[0].data_hora);
+
+            if (currentDatetime < appointmentDatetime) {
+
+                return {
+                    code: 403,
+                    error: "A conclusão não pode ser efetuada, pois a consulta ainda não aconteceu!"
+                }
+            } 
+
+            // Executa a conclusão da consulta
+            await database.execute(`
+                UPDATE consulta SET status = 'concluida' WHERE id_consulta = ?
+            `, [appointmentID]);
+
+            await database.execute(`
+                UPDATE horario SET status = '0'
+                WHERE id_horario = ?
+            `, [hourID])
+
+            return {
+                code: 200,
+                success: "Consulta concluída com sucesso!"
+            }
+        } catch(err) {
+
+            console.log(err) 
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao concluir a consulta! Tente novamente."
             }
         }
     }
