@@ -153,11 +153,6 @@ class PatientService {
                 }
             }
 
-            return {
-                code: 200,
-                success: 'OK'
-            }
-
             // Verifica se a consulta será marcada 24 horas antes
             const differenceInHours = this.getDifferenceInHours(rows[0].data_hora);
 
@@ -182,7 +177,7 @@ class PatientService {
             `, [rows[0].id_horario])
 
             return {
-                code: 200,
+                code: 201,
                 success: 'Consulta marcada com sucesso!'
             }
         } catch(err) {

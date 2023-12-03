@@ -5,6 +5,51 @@ import { database } from "../config/index.js";
 
 class UserService {
 
+    async getUser(token) {
+
+        try {
+
+            // Descriptografa o token, contendo informações de id (paciente, ortopedista e administrador), 
+            // junto com seu cargo
+            const tokenDecoded = jwt.decode(token, process.env.SECRET);
+
+            // A partir do cargo do usuario, posso manipular o código para ficar adaptativo
+            const role = tokenDecoded.role;
+
+            // exemplo - pegando o id do (paciente, ortopedista ou administrador)
+            const id = tokenDecoded[`id_${role}`];
+
+            // manipulando a query com base no cargo do usuário
+            const [ user ] = await database.execute(`
+                SELECT usuario.id_usuario, usuario.nome, usuario.sobrenome, usuario.email FROM usuario
+                JOIN ${role} ON ${role}.id_usuario = usuario.id_usuario
+                WHERE ${role}.id_${role} = ?
+            `, [id]);
+
+            if (user.length < 1) {
+
+                return {
+                    code: 404,
+                    error: "Usuário não encontrado!"
+                }
+            }
+
+            return {
+                code: 200,
+                success: user[0]
+            }
+
+        } catch(err) {
+
+            console.log(err);
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao buscar o usuário!"
+            }
+        }
+    }
+
     async getToken(email, password, role) {
 
         // Verifica se o usuário existe

@@ -2,6 +2,15 @@ import { userService } from "../services/UserService.js";
 
 class UserController {
 
+    async getUser(req, res) {
+
+        const [ , token ] = req.headers.authorization.split(' ');
+
+        const result = await userService.getUser(token);
+
+        return res.status(result.code).json(result);
+    }
+
     // Criar novo usuário - Cliente
     async setUser(req, res) {
 

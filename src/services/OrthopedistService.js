@@ -4,6 +4,58 @@ import { database } from "../config/index.js";
 
 class OrthopedistService {
 
+    async getOrthopedist(filter, token) {
+
+        try {
+
+            // Verificar se realmente é um administrador
+            const { id_administrador } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_administrador) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            let queryComplement;
+
+            if (filter != 'all') {
+
+                queryComplement = `WHERE usuario.status = '${filter == 'ativo' ? 1 : 0}'`
+            }
+
+            const [ rows ] = await database.query(`
+                SELECT usuario.id_usuario, ortopedista.id_ortopedista, usuario.nome, usuario.sobrenome, usuario.email, usuario.status FROM usuario
+                JOIN ortopedista ON ortopedista.id_usuario = usuario.id_usuario
+                ${queryComplement != undefined ? queryComplement : ''}
+                ORDER BY usuario.nome ASC
+            `)
+
+            if (rows.length < 1) {
+
+                return {
+                    code: 200,
+                    success: 'Nenhum registro foi encontrado!'
+                }
+            }
+
+            return {
+                code: 200,
+                success: rows
+            }
+        } catch(err) {
+
+            console.log(err) 
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao buscar os ortopedistas!"
+            }
+        }
+    }
+
     async getMyAppointments(token, filter, today) {
 
         try {
@@ -59,7 +111,7 @@ class OrthopedistService {
     }
 
     // Retorna todos os ortopedistas (ativos) e com horários disponíveis
-    async getAllOrthopedist() {
+    async getOrthopedistsAvailable() {
 
         try {
 

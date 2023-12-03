@@ -17,6 +17,7 @@ router.get('/login', userController.login);
 
 // ------------------------- USER ------------------------- //
 
+router.get('/user', auth, userController.getUser);
 router.post('/user', userController.setUser);
 
 // ------------------------- PACIENT ------------------------- //
@@ -24,15 +25,16 @@ router.post('/user', userController.setUser);
 router.get('/pacient/appointment', auth, patientController.getMyAppointments);
 router.get('/pacient/appointment/:id', auth, patientController.getMyAppointmentById);
 router.post('/appointment', auth, patientController.setApoointment);
-router.post('/cancel/appointment', auth, patientController.setCancelAppointment);
+router.patch('/cancel/appointment', auth, patientController.setCancelAppointment);
 
 // ------------------------- ORTHOPEDIST ------------------------- //
 
-router.get('/orthopedist', orthopedistController.getAllOrthopedist);
+router.get('/orthopedist', auth, orthopedistController.getOrthopedist);
+router.get('/orthopedist/available', orthopedistController.getOrthopedistsAvailable);
 router.get('/orthopedist/hours/:id', orthopedistController.getHours);
 router.get('/orthopedist/appointment', auth, orthopedistController.getMyAppointments);
 router.post('/orthopedist/hours', auth, orthopedistController.setHours);
-router.patch('/orthopedist/conclude/appointment', auth, orthopedistController.setCompleteAppointment)
+router.patch('/orthopedist/conclude/appointment', auth, orthopedistController.setCompleteAppointment);
 
 // ------------------------- ADMINISTRATOR ------------------------- //
 
