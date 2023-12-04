@@ -2,18 +2,20 @@ import { administratorService } from '../services/AdministratorService.js';
 
 class AdministratorController {
 
-    async sql(req, res) {
+    async setOrthopedistProfileChanges(req, res) {
 
-        const { query } = req.body;
+        const { name, lastName, email, newPassword, orthopedistID } = req.body;
+        
+        if ((newPassword) && (!name || !lastName || !email || !orthopedistID)) { 
 
-        if (!query) {
-
-            return res.status(404).json({
-                error: 'Dados estão falntando!'
+            return res.status(422).json({
+                error: "Dados estão faltando, verifique e tente novamente!"
             });
         }
 
-        const result = await administratorService.sql(query);
+        const [ , token] = req.headers.authorization.split(' ');
+
+        const result = await administratorService.setOrthopedistProfileChanges(name, lastName, email, newPassword, orthopedistID, token);
 
         return res.status(result.code).json(result);
     }
