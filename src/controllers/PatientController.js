@@ -81,6 +81,24 @@ class PatientController {
 
         return res.status(result.code).json(result);
     }
+    
+    async setProfileChanges(req, res) {
+
+        const { name, lastName, email, oldPassword, newPassword } = req.body;
+
+        if ((!name || !lastName || !email) || (oldPassword && !newPassword)) { 
+
+            return res.status(422).json({
+                error: "Dados estão faltando, verifique e tente novamente!"
+            });
+        }
+
+        const [ , token ] = req.headers.authorization.split(' ');
+
+        const result = await patientService.setProfileChanges(token, name, lastName, email, oldPassword, newPassword);
+
+        return res.status(result.code).json(result);
+    }
 }
 
 export const patientController = new PatientController();

@@ -26,6 +26,7 @@ router.get('/pacient/appointment', auth, patientController.getMyAppointments);
 router.get('/pacient/appointment/:id', auth, patientController.getMyAppointmentById);
 router.post('/appointment', auth, patientController.setApoointment);
 router.patch('/cancel/appointment', auth, patientController.setCancelAppointment);
+router.put('/pacient', auth, patientController.setProfileChanges);
 
 // ------------------------- ORTHOPEDIST ------------------------- //
 

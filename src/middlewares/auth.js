@@ -19,6 +19,8 @@ export default function auth(req, res, next) {
         next();
     } catch(err) {
 
+        console.log(err);
+
         return res.status(401).json({
             error: "Credencial de autenticação inválida!"
         });

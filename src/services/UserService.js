@@ -41,8 +41,6 @@ class UserService {
 
         } catch(err) {
 
-            console.log(err);
-
             return {
                 code: 500,
                 error: "Opa, um erro ocorreu ao buscar o usuário!"

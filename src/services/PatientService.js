@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcryptjs from 'bcryptjs';
 
 import { database } from "../config/index.js";
 
@@ -250,6 +251,69 @@ class PatientService {
                 error: "Opa, um erro ocorreu ao tentar realizar esta ação!"
             }
         }
+    }
+
+    async setProfileChanges(token, name, lastName, email, oldPassword, newPassword) {
+
+        try {
+
+            const { id_paciente } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_paciente) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            // Define os parâmetros padrôes
+            let params = [name, lastName, email, id_paciente];
+            
+            // Verifica se a senha tem que ser alterada
+            if (oldPassword && newPassword) {
+
+                // Busca a senha do usuário armazenada no banco
+                const [[ storedPassword ]] = await database.execute(`
+                    SELECT usuario.senha FROM usuario
+                    JOIN paciente ON paciente.id_usuario = usuario.id_usuario
+                    WHERE paciente.id_paciente = ?
+                `, [id_paciente]);
+
+                // Compara a senha antiga, que veio na requisição
+                if (await bcryptjs.compare(oldPassword, storedPassword.senha)) {
+
+                    var queryComplement = `, usuario.senha = ?`;
+
+                    // Criptografia da senha do usuário, antes de salvar no banco de dados
+                    const salt = await bcryptjs.genSalt(12);
+                    const passwordhashSync = await bcryptjs.hash(newPassword, salt);
+
+                    params.splice(3, 0, passwordhashSync);
+
+                } else return { code: 400, error: "Senha antiga incorreta! Verifique e tente novamente." }
+            }
+
+            await database.execute(`
+                UPDATE usuario
+                JOIN paciente ON paciente.id_usuario = usuario.id_usuario
+                SET usuario.nome = ?, usuario.sobrenome = ?, usuario.email = ?${queryComplement || ''}
+                WHERE paciente.id_paciente = ?
+            `, params);
+
+            return {
+                code: 200,
+                success: 'Usuário editado com sucesso!'
+            }
+        } catch(err) {
+
+            console.log(err);
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao tentar editar o usuário!"
+            }
+        }   
     }
 }
 
