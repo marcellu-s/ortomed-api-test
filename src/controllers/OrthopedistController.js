@@ -2,29 +2,6 @@ import { orthopedistService } from "../services/OrthopedistService.js";
 
 class OrthopedistController {
 
-    async getOrthopedist(req, res) {
-
-        let { filter } = req.query;
-
-        if (!filter) filter = 'all';
-
-        // Verificação caso exista um parâmetro de filtro
-        const filtersOptions = ['all', 'ativo', 'inativo'];
-
-        if (filtersOptions.indexOf(filter) < 0) {
-
-            return res.status(400).json({
-                error: "Parâmetro de filtro inválido! (aceitos: 'all', 'ativo', 'inativo')"
-            });
-        }
-
-        const [ , token] = req.headers.authorization.split(' ');
-
-        const result = await orthopedistService.getOrthopedist(filter, token);
-        
-        return res.status(result.code).json(result);
-    }
-
     // Consultas marcadas do ortopedista
     async getMyAppointments(req, res) {
 

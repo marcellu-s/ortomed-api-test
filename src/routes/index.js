@@ -30,7 +30,6 @@ router.put('/pacient/edit', auth, patientController.setProfileChanges);
 
 // ------------------------- ORTHOPEDIST ------------------------- //
 
-router.get('/orthopedist', auth, orthopedistController.getOrthopedist);
 router.get('/orthopedist/available', orthopedistController.getOrthopedistsAvailable);
 router.get('/orthopedist/hours/:id', orthopedistController.getHours);
 router.get('/orthopedist/appointment', auth, orthopedistController.getMyAppointments);
@@ -39,5 +38,7 @@ router.patch('/orthopedist/conclude/appointment', auth, orthopedistController.se
 
 // ------------------------- ADMINISTRATOR ------------------------- //
 
+router.get('/employees', auth, administratorController.getEmployees);
+router.patch('/administrator/user/inactivate/:id', auth, administratorController.setInactivateUser)
 router.put('/administrator/orthopedist/edit', auth, administratorController.setOrthopedistProfileChanges);
 router.put('/administradtor/edit', auth, administratorController.setAdministratorProfileChanges);

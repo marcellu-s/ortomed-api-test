@@ -5,6 +5,62 @@ import { database } from "../config/index.js";
 
 class AdministratorService {
 
+    async getEmployees(filter, token) {
+
+        try {
+
+            // Verificar se realmente é um administrador
+            const { id_administrador } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_administrador) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            let queryComplement;
+
+            if (filter != 'all') {
+
+                queryComplement = `WHERE usuario.status = '${filter == 'ativo' ? 1 : 0}'`
+            }
+
+            const [ employees ] = await database.query(`
+                SELECT usuario.id_usuario, ortopedista.id_ortopedista, usuario.nome, usuario.sobrenome, usuario.email, 'ortopedista' AS cargo FROM ortopedista
+                JOIN usuario ON usuario.id_usuario = ortopedista.id_usuario
+                ${queryComplement || ''}
+                UNION
+                SELECT usuario.id_usuario, administrador.id_administrador, usuario.nome, usuario.sobrenome, usuario.email, 'administrador' AS cargo FROM administrador
+                JOIN usuario ON usuario.id_usuario = administrador.id_usuario
+                ${queryComplement || ''}
+                ORDER BY nome ASC
+            `);
+
+            if (employees.length < 1) {
+
+                return {
+                    code: 200,
+                    success: 'Nenhum registro foi encontrado!'
+                }
+            }
+
+            return {
+                code: 200,
+                success: employees
+            }
+        } catch(err) {
+
+            console.log(err) 
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao buscar os ortopedistas!"
+            }
+        }
+    }
+
     async setOrthopedistProfileChanges(name, lastName, email, newPassword, orthopedistID, token) {
 
         try {
@@ -70,7 +126,7 @@ class AdministratorService {
 
                 return {
                     code: 401,
-                    error: 'Um administrador não pode editar a si mesmo! Entre em contato com outro admin.'
+                    error: 'Editar a si mesmo - É uma ação que só pode ser efetuada por outro administrador!'
                 }
             }
             
@@ -108,6 +164,55 @@ class AdministratorService {
             return {
                 code: 500,
                 error: "Opa, um erro ocorreu ao tentar editar o usuário!"
+            }
+        }
+    }
+
+    async setInactivateUser(userID, token) {
+
+        try {
+
+            const { id_administrador } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_administrador) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            const [[ isAdministrator ]] = await database.execute(`
+                SELECT administrador.id_administrador FROM administrador
+                JOIN usuario ON usuario.id_usuario = administrador.id_usuario
+                WHERE usuario.id_usuario = ?
+            `, [userID])
+
+            if (isAdministrator && id_administrador == isAdministrator.id_administrador) {
+
+                return {
+                    code: 401,
+                    error: 'Inaviar a si mesmo - É uma ação que só pode ser efetuada por outro administrador!'
+                }
+            }
+
+            await database.execute(`
+                UPDATE usuario
+                SET status = '0'
+                WHERE id_usuario = ?
+            `, [userID]);
+
+            return {
+                code: 200,
+                success: "Usuário inativado com sucesso!"
+            }
+        } catch(err) {
+
+            console.log(err);
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao inativar o usuário!"
             }
         }
     }
