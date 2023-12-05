@@ -34,6 +34,8 @@ class UserService {
                 }
             }
 
+            user[0]['nivel'] = role;
+
             return {
                 code: 200,
                 success: user[0]

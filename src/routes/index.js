@@ -39,4 +39,5 @@ router.patch('/orthopedist/conclude/appointment', auth, orthopedistController.se
 
 // ------------------------- ADMINISTRATOR ------------------------- //
 
-router.put('/administrator/orthopedist/edit', auth, administratorController.setProfileChanges)
+router.put('/administrator/orthopedist/edit', auth, administratorController.setOrthopedistProfileChanges);
+router.put('/administradtor/edit', auth, administratorController.setAdministratorProfileChanges);
