@@ -26,8 +26,6 @@ class PatientService {
 
             if (today === true) queryComplement = `${queryComplement} AND DATE(consulta.data_hora) = CURDATE()`;
 
-            console.log(queryComplement);
-
             const [ rows ] = await database.execute(`
                 SELECT consulta.*, CONCAT(p.nome, " ", p.sobrenome) AS nome_paciente, CONCAT(o.nome, " ", o.sobrenome) AS nome_ortopedista
                 FROM consulta
@@ -102,8 +100,6 @@ class PatientService {
 
 
         } catch(err) {
-
-            console.log(err);
 
             return {
                 code: 500,
@@ -183,8 +179,6 @@ class PatientService {
             }
         } catch(err) {
 
-            console.log(err);
-
             return {
                 code: 500,
                 error: 'Opa, um erro ocorreu! Tente novamente!'
@@ -243,8 +237,6 @@ class PatientService {
                 }
             }
         } catch(err) {
-
-            console.log(err);
 
             return {
                 code: 500,
@@ -306,8 +298,6 @@ class PatientService {
                 success: 'Usuário editado com sucesso!'
             }
         } catch(err) {
-
-            console.log(err);
 
             return {
                 code: 500,

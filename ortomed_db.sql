@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.1
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: sql10.freemysqlhosting.net
--- Tempo de geração: 28/11/2023 às 02:07
--- Versão do servidor: 5.5.62-0ubuntu0.14.04.1
--- Versão do PHP: 7.0.33-0ubuntu0.16.04.16
+-- Host: 127.0.0.1
+-- Tempo de geração: 10/12/2023 às 19:04
+-- Versão do servidor: 10.4.28-MariaDB
+-- Versão do PHP: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -19,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Banco de dados: `sql10664590`
+-- Banco de dados: `ortomed_db`
 --
 
 -- --------------------------------------------------------
@@ -31,7 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `administrador` (
   `id_administrador` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -46,7 +45,7 @@ CREATE TABLE `consulta` (
   `status` enum('em espera','em andamento','concluída','cancelada') NOT NULL DEFAULT 'em espera',
   `id_paciente` int(11) NOT NULL,
   `id_ortopedista` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -59,7 +58,7 @@ CREATE TABLE `horario` (
   `data_hora` datetime NOT NULL,
   `status` enum('0','1') NOT NULL DEFAULT '0' COMMENT '0 = disponivel; 1 = indisponivel',
   `id_ortopedista` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -70,7 +69,7 @@ CREATE TABLE `horario` (
 CREATE TABLE `ortopedista` (
   `id_ortopedista` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -81,7 +80,7 @@ CREATE TABLE `ortopedista` (
 CREATE TABLE `paciente` (
   `id_paciente` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -96,41 +95,47 @@ CREATE TABLE `usuario` (
   `email` varchar(60) NOT NULL,
   `senha` varchar(60) NOT NULL,
   `status` enum('0','1') NOT NULL DEFAULT '1' COMMENT '0 = inativo; 1 = ativo'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Índices de tabelas apagadas
+-- Índices para tabelas despejadas
 --
 
 --
 -- Índices de tabela `administrador`
 --
 ALTER TABLE `administrador`
-  ADD PRIMARY KEY (`id_administrador`);
+  ADD PRIMARY KEY (`id_administrador`),
+  ADD KEY `fk_administrador_usuario` (`id_usuario`);
 
 --
 -- Índices de tabela `consulta`
 --
 ALTER TABLE `consulta`
-  ADD PRIMARY KEY (`id_consulta`);
+  ADD PRIMARY KEY (`id_consulta`),
+  ADD KEY `fk_consulta_paciente` (`id_paciente`),
+  ADD KEY `fk_consulta_ortopedista` (`id_ortopedista`);
 
 --
 -- Índices de tabela `horario`
 --
 ALTER TABLE `horario`
-  ADD PRIMARY KEY (`id_horario`);
+  ADD PRIMARY KEY (`id_horario`),
+  ADD KEY `fk_horario_ortopedista` (`id_ortopedista`);
 
 --
 -- Índices de tabela `ortopedista`
 --
 ALTER TABLE `ortopedista`
-  ADD PRIMARY KEY (`id_ortopedista`);
+  ADD PRIMARY KEY (`id_ortopedista`),
+  ADD KEY `fk_ortopedista_usuario` (`id_usuario`);
 
 --
 -- Índices de tabela `paciente`
 --
 ALTER TABLE `paciente`
-  ADD PRIMARY KEY (`id_paciente`);
+  ADD PRIMARY KEY (`id_paciente`),
+  ADD KEY `fk_paciente_usuario` (`id_usuario`);
 
 --
 -- Índices de tabela `usuario`
@@ -140,7 +145,7 @@ ALTER TABLE `usuario`
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- AUTO_INCREMENT de tabelas apagadas
+-- AUTO_INCREMENT para tabelas despejadas
 --
 
 --
@@ -148,31 +153,72 @@ ALTER TABLE `usuario`
 --
 ALTER TABLE `administrador`
   MODIFY `id_administrador` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT de tabela `consulta`
 --
 ALTER TABLE `consulta`
   MODIFY `id_consulta` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT de tabela `horario`
 --
 ALTER TABLE `horario`
   MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT de tabela `ortopedista`
 --
 ALTER TABLE `ortopedista`
   MODIFY `id_ortopedista` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT de tabela `paciente`
 --
 ALTER TABLE `paciente`
   MODIFY `id_paciente` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT de tabela `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT;COMMIT;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Restrições para tabelas despejadas
+--
+
+--
+-- Restrições para tabelas `administrador`
+--
+ALTER TABLE `administrador`
+  ADD CONSTRAINT `fk_administrador_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`);
+
+--
+-- Restrições para tabelas `consulta`
+--
+ALTER TABLE `consulta`
+  ADD CONSTRAINT `fk_consulta_ortopedista` FOREIGN KEY (`id_ortopedista`) REFERENCES `ortopedista` (`id_ortopedista`),
+  ADD CONSTRAINT `fk_consulta_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `paciente` (`id_paciente`);
+
+--
+-- Restrições para tabelas `horario`
+--
+ALTER TABLE `horario`
+  ADD CONSTRAINT `fk_horario_ortopedista` FOREIGN KEY (`id_ortopedista`) REFERENCES `ortopedista` (`id_ortopedista`);
+
+--
+-- Restrições para tabelas `ortopedista`
+--
+ALTER TABLE `ortopedista`
+  ADD CONSTRAINT `fk_ortopedista_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`);
+
+--
+-- Restrições para tabelas `paciente`
+--
+ALTER TABLE `paciente`
+  ADD CONSTRAINT `fk_paciente_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`);
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

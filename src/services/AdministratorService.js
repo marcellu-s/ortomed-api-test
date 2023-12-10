@@ -52,8 +52,6 @@ class AdministratorService {
             }
         } catch(err) {
 
-            console.log(err) 
-
             return {
                 code: 500,
                 error: "Opa, um erro ocorreu ao buscar os ortopedistas!"
@@ -103,8 +101,6 @@ class AdministratorService {
                 success: rows
             }
         } catch(err) {
-
-            console.log(err);
 
             return {
                 code: 500,
@@ -259,8 +255,6 @@ class AdministratorService {
                 success: "Usuário inativado com sucesso!"
             }
         } catch(err) {
-
-            console.log(err);
 
             return {
                 code: 500,

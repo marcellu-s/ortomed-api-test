@@ -49,8 +49,6 @@ class OrthopedistService {
             }
         } catch(err) {
 
-            console.log(err);
-
             return {
                 code: 500,
                 error: 'Opa, um erro ocorreu!'
@@ -84,8 +82,6 @@ class OrthopedistService {
                 success: rows
             }
         } catch(err) {
-
-            console.log(err);
 
             return {
                 code: 500,
@@ -218,8 +214,6 @@ class OrthopedistService {
                 success: "Consulta concluída com sucesso!"
             }
         } catch(err) {
-
-            console.log(err) 
 
             return {
                 code: 500,
