@@ -25,6 +25,31 @@ class AdministratorController {
         return res.status(result.code).json(result);
     }
 
+    async getOrthopedistAppointments(req, res) {
+
+        let { filter } = req.query;
+
+        const { id } = req.params;
+
+        if (!filter) filter = 'all';
+
+        // Verificação caso exista um parâmetro de filtro
+        const filtersOptions = ['all', 'em espera', 'cancelada', 'concluida'];
+
+        if (filtersOptions.indexOf(filter) < 0) {
+
+            return res.status(400).json({
+                error: "Parâmetro de filtro inválido!"
+            });
+        }
+
+        const [ , token] = req.headers.authorization.split(' ');
+
+        const result = await administratorService.getOrthopedistAppointments(id, filter, token);
+        
+        return res.status(result.code).json(result);
+    }
+
     async setOrthopedistProfileChanges(req, res) {
 
         const { name, lastName, email, newPassword, orthopedistID } = req.body;

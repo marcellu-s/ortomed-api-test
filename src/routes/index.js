@@ -34,11 +34,12 @@ router.get('/orthopedist/available', orthopedistController.getOrthopedistsAvaila
 router.get('/orthopedist/hours/:id', orthopedistController.getHours);
 router.get('/orthopedist/appointment', auth, orthopedistController.getMyAppointments);
 router.post('/orthopedist/hours', auth, orthopedistController.setHours);
-router.patch('/orthopedist/conclude/appointment', auth, orthopedistController.setCompleteAppointment);
+router.patch('/orthopedist/conclude/appointment/:id', auth, orthopedistController.setCompleteAppointment);
 
 // ------------------------- ADMINISTRATOR ------------------------- //
 
 router.get('/employees', auth, administratorController.getEmployees);
+router.get('/orthopedist/:id/appointment', auth, administratorController.getOrthopedistAppointments);
 router.patch('/administrator/user/inactivate/:id', auth, administratorController.setInactivateUser)
 router.put('/administrator/orthopedist/edit', auth, administratorController.setOrthopedistProfileChanges);
 router.put('/administradtor/edit', auth, administratorController.setAdministratorProfileChanges);

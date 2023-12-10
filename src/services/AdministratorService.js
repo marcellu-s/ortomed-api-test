@@ -61,6 +61,58 @@ class AdministratorService {
         }
     }
 
+    async getOrthopedistAppointments(orthopedistID, filter, token) {
+
+        try {
+
+            const { id_administrador } = jwt.decode(token, process.env.SECRET);
+
+            if (!id_administrador) {
+
+                return {
+                    code: 401,
+                    error: 'Credencial de autenticação inválida, tente fazer Log In novamente!'
+                }
+            }
+
+            let queryComplement = '';
+
+            if (filter != 'all') queryComplement = `AND consulta.status = '${filter.toLowerCase()}'`;
+
+            const [ rows ] = await database.execute(`
+                SELECT consulta.*, CONCAT(p.nome, " ", p.sobrenome) AS nome_paciente, CONCAT(o.nome, " ", o.sobrenome) AS nome_ortopedista
+                FROM consulta
+                JOIN paciente ON paciente.id_paciente = consulta.id_paciente
+                JOIN ortopedista ON ortopedista.id_ortopedista = consulta.id_ortopedista
+                JOIN usuario AS p ON p.id_usuario = paciente.id_usuario
+                JOIN usuario AS o ON o.id_usuario = ortopedista.id_usuario
+                WHERE ortopedista.id_ortopedista = ? ${queryComplement}
+                ORDER BY consulta.data_hora DESC       
+            `, [orthopedistID]);
+
+            if (rows.length < 1) {
+
+                return {
+                    code: 200,
+                    success: 'Nenhum registro foi encontrado!'
+                }
+            }
+
+            return {
+                code: 200,
+                success: rows
+            }
+        } catch(err) {
+
+            console.log(err);
+
+            return {
+                code: 500,
+                error: "Opa, um erro ocorreu ao buscar as consultas do ortopedista!"
+            }
+        }
+    }
+
     async setOrthopedistProfileChanges(name, lastName, email, newPassword, orthopedistID, token) {
 
         try {

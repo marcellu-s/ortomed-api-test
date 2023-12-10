@@ -75,13 +75,15 @@ class OrthopedistController {
     // Definir consulta como concluída
     async setCompleteAppointment(req, res) {
 
-        const { appointmentID, hourID } = req.query;
+        const { id } = req.params;
 
-        if (!appointmentID || !hourID) return res.status(422).json({ error: 'ID da consulta e do horário são obrigatórios!' });
+        const { hourID } = req.query;
+
+        if (!id || !hourID) return res.status(422).json({ error: 'ID da consulta e do horário são obrigatórios!' });
 
         const [ , token] = req.headers.authorization.split(' ');
 
-        const result = await orthopedistService.setCompleteAppointment(appointmentID, hourID, token);
+        const result = await orthopedistService.setCompleteAppointment(id, hourID, token);
 
         return res.status(result.code).json(result);
     }
