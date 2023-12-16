@@ -38,14 +38,6 @@ class AdministratorService {
                 ORDER BY nome ASC
             `);
 
-            if (employees.length < 1) {
-
-                return {
-                    code: 200,
-                    success: 'Nenhum registro foi encontrado!'
-                }
-            }
-
             return {
                 code: 200,
                 success: employees
@@ -87,14 +79,6 @@ class AdministratorService {
                 WHERE ortopedista.id_ortopedista = ? ${queryComplement}
                 ORDER BY consulta.data_hora DESC       
             `, [orthopedistID]);
-
-            if (rows.length < 1) {
-
-                return {
-                    code: 200,
-                    success: 'Nenhum registro foi encontrado!'
-                }
-            }
 
             return {
                 code: 200,
@@ -177,11 +161,6 @@ class AdministratorService {
                     error: 'Editar a si mesmo - É uma ação que só pode ser efetuada por outro administrador!'
                 }
             }
-            
-            // return {
-            //     code: 200,
-            //     success: 'OK'
-            // }
 
             let params = [name, lastName, email, administratorID];
 

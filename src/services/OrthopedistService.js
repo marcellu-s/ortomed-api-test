@@ -35,14 +35,6 @@ class OrthopedistService {
                 ORDER BY consulta.data_hora DESC       
             `, [id_ortopedista]);
 
-            if (rows.length < 1) {
-
-                return {
-                    code: 200,
-                    success: 'Nenhum registro foi encontrado!'
-                }
-            }
-
             return {
                 code: 200,
                 success: rows

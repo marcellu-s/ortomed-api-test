@@ -37,15 +37,6 @@ class PatientService {
                 ORDER BY consulta.data_hora DESC        
             `, [id_paciente]);
 
-
-            if (rows.length < 1) {
-
-                return {
-                    code: 200,
-                    success: 'Nenhum registro foi encontrado!'
-                }
-            }
-
             return {
                 code: 200,
                 success: rows
@@ -94,10 +85,9 @@ class PatientService {
 
                 return {
                     code: 200,
-                    success: `Não foi encontrado nenhum registro de id ${id}`
+                    error: `Não foi encontrado nenhum registro de id ${id}`
                 }
             }
-
 
         } catch(err) {
 
