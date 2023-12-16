@@ -5,7 +5,7 @@ import { database } from "../config/index.js";
 
 class AdministratorService {
 
-    async getEmployees(filter, token) {
+    async getEmployees(filter, role, token) {
 
         try {
 
@@ -27,16 +27,29 @@ class AdministratorService {
                 queryComplement = `WHERE usuario.status = '${filter == 'ativo' ? 1 : 0}'`
             }
 
-            const [ employees ] = await database.query(`
-                SELECT usuario.id_usuario, ortopedista.id_ortopedista, usuario.nome, usuario.sobrenome, usuario.email, 'ortopedista' AS cargo FROM ortopedista
-                JOIN usuario ON usuario.id_usuario = ortopedista.id_usuario
-                ${queryComplement || ''}
-                UNION
-                SELECT usuario.id_usuario, administrador.id_administrador, usuario.nome, usuario.sobrenome, usuario.email, 'administrador' AS cargo FROM administrador
-                JOIN usuario ON usuario.id_usuario = administrador.id_usuario
-                ${queryComplement || ''}
-                ORDER BY nome ASC
-            `);
+            let employees;
+
+            if (role != 'all') {
+
+                [ employees ] = await database.query(`
+                    SELECT usuario.id_usuario, ${role}.id_${role} AS id_funcionario, usuario.nome, usuario.sobrenome, usuario.email, usuario.status, '${role}' AS cargo FROM ${role}
+                    JOIN usuario ON usuario.id_usuario = ${role}.id_usuario
+                    ${queryComplement || ''}
+                    ORDER BY nome ASC
+                `);
+            } else {
+
+                [ employees ] = await database.query(`
+                    SELECT usuario.id_usuario, ortopedista.id_ortopedista AS id_funcionario, usuario.nome, usuario.sobrenome, usuario.email, usuario.status, 'ortopedista' AS cargo FROM ortopedista
+                    JOIN usuario ON usuario.id_usuario = ortopedista.id_usuario
+                    ${queryComplement || ''}
+                    UNION
+                    SELECT usuario.id_usuario, administrador.id_administrador AS id_funcionario, usuario.nome, usuario.sobrenome, usuario.email, usuario.status, 'administrador' AS cargo FROM administrador
+                    JOIN usuario ON usuario.id_usuario = administrador.id_usuario
+                    ${queryComplement || ''}
+                    ORDER BY nome ASC
+                `);
+            }
 
             return {
                 code: 200,

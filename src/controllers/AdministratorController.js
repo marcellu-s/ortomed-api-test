@@ -4,23 +4,32 @@ class AdministratorController {
 
     async getEmployees(req, res) {
 
-        let { filter } = req.query;
+        let { filter, role } = req.query;
 
         if (!filter) filter = 'all';
+        if (!role) role = 'all';
 
         // Verificação caso exista um parâmetro de filtro
-        const filtersOptions = ['all', 'ativo', 'inativo'];
+        const filterStatusOptions = ['all', 'ativo', 'inativo'];
+        const filterRoleOptions = ['all', 'administrador', 'ortopedista'];
 
-        if (filtersOptions.indexOf(filter) < 0) {
+        if (filterStatusOptions.indexOf(filter) < 0) {
 
             return res.status(400).json({
-                error: "Parâmetro de filtro inválido! (aceitos: 'all', 'ativo', 'inativo')"
+                error: "Parâmetro de filtro de status inválido! (aceitos: 'all', 'ativo', 'inativo')"
+            });
+        }
+
+        if (filterRoleOptions.indexOf(role) < 0) {
+
+            return res.status(400).json({
+                error: "Parâmetro de filtro de cargo inválido! (aceitos: 'all', 'administrador', 'ortopedista')"
             });
         }
 
         const [ , token] = req.headers.authorization.split(' ');
 
-        const result = await administratorService.getEmployees(filter, token);
+        const result = await administratorService.getEmployees(filter, role, token);
         
         return res.status(result.code).json(result);
     }
