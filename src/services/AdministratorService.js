@@ -27,6 +27,7 @@ class AdministratorService {
                 queryComplement = `WHERE usuario.status = '${filter == 'ativo' ? 1 : 0}'`
             }
 
+
             let employees;
 
             if (role != 'all') {

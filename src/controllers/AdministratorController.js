@@ -92,7 +92,7 @@ class AdministratorController {
             });
         }
 
-        
+        const [ , token] = req.headers.authorization.split(' ');        
 
         const result = await administratorService.setAdministratorProfileChanges(name, lastName, email, newPassword, administratorID, token);
 

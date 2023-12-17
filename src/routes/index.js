@@ -42,4 +42,4 @@ router.get('/employees', auth, administratorController.getEmployees);
 router.get('/orthopedist/:id/appointment', auth, administratorController.getOrthopedistAppointments);
 router.patch('/administrator/user/inactivate/:id', auth, administratorController.setInactivateUser)
 router.put('/administrator/orthopedist/edit', auth, administratorController.setOrthopedistProfileChanges);
-router.put('/administradtor/edit', auth, administratorController.setAdministratorProfileChanges);
+router.put('/administrator/edit', auth, administratorController.setAdministratorProfileChanges);
