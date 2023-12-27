@@ -17,10 +17,10 @@ Siga os passos abaixo para clonar, instalar dependências e executar o aplicativ
 
 ```bash
 # Clone este repositório
-git clone https://github.com/marcellu-s/api-test-receitaria-primavera.git
+git clone https://github.com/marcellu-s/ortomed-api-test.git
 
 # Navegue para o diretório do projeto
-cd api-test-receitaria-primavera
+cd ortomed-api-test
 
 # Instale as dependências do projeto
 npm install
